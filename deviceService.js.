@@ -1,0 +1,16 @@
+// dataCollector.js
+import DeviceInfo from 'react-native-device-info';
+import NetInfo from "@react-native-community/netinfo";
+
+export const collectData = async (userPhoneNumber) => {
+  const batteryLevel = await DeviceInfo.getBatteryLevel();
+  const netInfo = await NetInfo.fetch();
+  const wifiName = netInfo.details.ssid || "Unknown (No Permission)";
+
+  return {
+    phone: userPhoneNumber,
+    battery: (batteryLevel * 100).toFixed(0) + '%',
+    wifi: wifiName,
+    timestamp: new Date().toISOString()
+  };
+};
